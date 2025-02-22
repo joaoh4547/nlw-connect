@@ -1,8 +1,10 @@
 "use client"
 import { Button } from "@/components/button"
 import { Input } from "@/components/input"
+import { subscribeToEvent } from "@/http/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Mail, User } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -14,6 +16,8 @@ const subscriptionSchema = z.object({
 type SubscriptionSchema = z.infer<typeof subscriptionSchema>
 
 export function SubscriptionForm() {
+    const { push } = useRouter()
+    const search = useSearchParams()
     const {
         register,
         handleSubmit,
@@ -22,8 +26,14 @@ export function SubscriptionForm() {
         resolver: zodResolver(subscriptionSchema),
     })
 
-    function handleSubscribe(data: SubscriptionSchema) {
-        console.log(data)
+    async function handleSubscribe({ email, name }: SubscriptionSchema) {
+        const referrer = search.get("referrer")
+        const { subscriberId } = await subscribeToEvent({
+            email,
+            name,
+            referrer,
+        })
+        push(`/invite/${subscriberId}`)
     }
 
     return (
